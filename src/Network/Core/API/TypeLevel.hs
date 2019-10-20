@@ -2,7 +2,7 @@ module Network.Core.API.TypeLevel where
 
 import Data.Kind
 import GHC.TypeLits
-import Network.Core.API.Internal hiding (Header)
+import Network.Core.API.Internal
 import Network.Core.API.MediaType
 import Network.HTTP.Types (Header, Status)
 import Web.HttpApiData (ToHttpApiData)
@@ -15,18 +15,21 @@ type family HttpReq (ts :: [ReqContent Type]) :: [  Type ] where
   HttpReq ('QueryFlags fs ': ts) = HttpReq ts
 
   HttpReq ('Params ( '(s, a) ': ps ) ': ts) = a ': HttpReq ('Params ps ': ts)
-
   HttpReq ('Params '[] : ts) = HttpReq ts
 
-  HttpReq ('ReqHeaders ( '(s, a) ': ps ) ': ts) = a ': HttpReq ('ReqHeaders ps ': ts)
+  HttpReq ('CaptureAll s t ': ts) = t ': HttpReq ts
 
+  HttpReq ('Captures ( '(s, a) ': cs ) ': ts) = a ': HttpReq ('Captures cs ': ts)
+  HttpReq ('Captures '[] : ts) = HttpReq ts
+
+  HttpReq ('ReqHeaders ( '(s, a) ': hs ) ': ts) = a ': HttpReq ('ReqHeaders hs ': ts)
   HttpReq ('ReqHeaders '[] : ts) = HttpReq ts
 
-type family HttpRes (res :: [ ResContent Type ]):: [ Type ] where
+type family HttpRes (res :: [ ResContent Type ]) :: [ Type ] where
   HttpRes '[] = '[]
   HttpRes ('ResBody ctyp a ': ts) = a ': HttpRes ts
-  HttpRes ('ResHeaders '[]  ': ts) = HttpRes ts
   HttpRes ('ResHeaders (s ': hs) ': ts) = [Header] ': HttpRes ts
+  HttpRes ('ResHeaders '[]  ': ts) = HttpRes ts
   HttpRes ('ResStatus ': ts) = Status ': HttpRes ts
 
 
@@ -47,12 +50,17 @@ type family HttpReqConstraints (req :: [ReqContent Type]) :: Constraint where
 
   HttpReqConstraints ('Params ( '(s, a) ': ps) ': ts) =
     (KnownSymbol s, ToHttpApiData a,  HttpReqConstraints ('Params ps ': ts))
-
   HttpReqConstraints ('Params '[] ': ts) =  HttpReqConstraints ts
 
-  HttpReqConstraints ('ReqHeaders ('(s, a) ': hs) ': ts) =
-     (KnownSymbol s, ToHttpApiData a, HttpReqConstraints ts)
+  HttpReqConstraints ('Captures ( '(s, a) ': cs) ': ts) =
+    (KnownSymbol s, ToHttpApiData a,  HttpReqConstraints ('Captures cs ': ts))
+  HttpReqConstraints ('Captures '[] ': ts) =  HttpReqConstraints ts
 
+  HttpReqConstraints ('CaptureAll s a ': ts) =
+    (ToHttpApiData a, KnownSymbol s, HttpReqConstraints ts)
+
+  HttpReqConstraints ('ReqHeaders ('(s, a) ': hs) ': ts) =
+     (KnownSymbol s, ToHttpApiData a, HttpReqConstraints ('ReqHeaders hs ': ts))
   HttpReqConstraints ('ReqHeaders '[] ': ts) = HttpReqConstraints ts
 
 

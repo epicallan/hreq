@@ -10,14 +10,19 @@ import Network.HTTP.Types.Method (Method, StdMethod (..), methodConnect, methodD
 data Verb (method :: StdMethod) (contents:: [k])
   deriving (Typeable, Generic)
 
-type Get ts = Verb 'GET ts
+type GET = 'GET
+type Get ts = Verb GET ts
 
+type POST = 'POST
 type Post ts  = Verb 'POST  ts
 
-type Put ts  = Verb 'PUT ts
+type PUT = 'PUT
+type Put ts  = Verb PUT ts
 
+type DELETE = 'DELETE
 type Delete ts = Verb 'DELETE ts
 
+type PATCH = 'PATCH
 type Patch ts = Verb 'PATCH  ts
 
 class ReflectMethod a where

@@ -8,7 +8,7 @@ import Network.HTTP.Types (Header, HeaderName, HttpVersion (..), Method, QueryIt
 import Web.HttpApiData (ToHttpApiData (..))
 
 data Request = Request
-  { reqPath        :: String -- | Maybe use builder
+  { reqPath        :: String -- | TODO: Maybe use builder or Text
   , reqMethod      :: Method
   , reqBody        :: Maybe B.ByteString
   , reqQueryString :: [QueryItem]

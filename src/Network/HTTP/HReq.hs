@@ -1,14 +1,13 @@
 module Network.HTTP.Hreq
   ( module Network.Core.API
   , module Network.Core.Http
+  , module Network.HTTP.Hreq.Config
   , runHreq
-  , runHreqDef
-  , defaultConfig
-  , HttpConfig (..)
+  , Hreq (..)
   ) where
 
 import Network.Core.API
 import Network.Core.Http
 
-import Network.HTTP.Hreq.Config (HttpConfig (..), defaultConfig)
-import Network.HTTP.Hreq.Internal (runHreq, runHreqDef)
+import Network.HTTP.Hreq.Config
+import Network.HTTP.Hreq.Internal (Hreq (..), runHreq)

@@ -4,82 +4,70 @@ module Network.Core.API
     , module Network.Core.API.TypeLevel
     , module Network.Core.API.Verbs
     , module Network.Core.API
+    , Header
+    , Status (..)
     ) where
 
-import Data.Kind
 import GHC.TypeLits
 
 import Network.Core.API.Internal
 import Network.Core.API.MediaType
 import Network.Core.API.TypeLevel
 import Network.Core.API.Verbs
+import Network.HTTP.Types (Header, Status (..))
 
+-- | Single Request item Type synonyms
 
--- | Type combinators
+type QueryFlag (s :: Symbol) = '[ QueryFlags '[ s ] ]
 
-infixr 6 ::>
+type Param s t = '[ Params '[ s := t ] ]
 
-data (a :: k1) ::> (b :: k2)
+type Capture s t = '[ Captures '[ s := t] ]
 
-infixr 7 :>
-
-type (xs :: [ReqContent Type]) :> (content :: k ) = xs ::> content
-
-infixr 5 :?
-
-type (a :: Symbol) :? (ts :: k) = a ::> ts
-
-infixr 1 :=
-
-type (a :: k1) := (b :: k2) = '( a, b)
-
--- | Type synonyms
-
-type QueryFlag (s :: Symbol) = '[ 'QueryFlags '[ s ] ]
-
-type QueryFlags = 'QueryFlags
-
------------------
-
-type Param s t = '[ 'Params '[ s := t ] ]
-
-type Params = 'Params
-
--------------------
-
-type ReqBody = 'ReqBody
+type CaptureAll' s t = '[ CaptureAll s t ]
 
 type JSONBody a  =  '[ ReqBody JSON a ]
 
----------------------
+type ResHeader s t = '[ ResHeaders '[ s := t] ]
 
-type ResBody = 'ResBody
+-- | Response Type synonyms
 
 type GetJSON a = Get '[ ResBody JSON a]
 
-type PostJson a = Post '[ResBody JSON a]
+type PostJSON a = Post '[ResBody JSON a]
 
-----
+type PutJSON a = Put '[ ResBody JSON a]
 
--- | TODO: into DocTests
-data User' = User'
+type PatchJSON a = Patch '[ ResBody JSON a]
 
-type Example1 = JSONBody User' :> GetJSON User'
+type DeleteJson a = Delete '[ResBody JSON a]
 
-type Example6 = Param  "name" String :> GetJSON User'
+type RawResponse v = Verb v '[ Raw ]
 
-type Example2 = "users" :? JSONBody User' :> GetJSON User'
+type EmptyResponse v = Verb v '[]
 
-type Example3 = "users"
-  :? Param "author" String
-  :> GetJSON User'
+-- | Doc-tests
+--
+-- >>> data User = User
 
--- ^ returns only a single user output
-type Example5 =
-     Param "teacher" String
-  :> Get '[ ResBody JSON User', 'ResStatus, 'ResHeaders '[ "content" := String] ]
-   -- returns an HList with user, status code and header
+-- >>> type Ex1 = JSONBody User :> GetJSON User
 
-type Example4 = "users"
-  :? '[ Params '["some" := Int, "name" := String], ReqBody JSON User' ]
-  :> GetJSON User'
+-- >>> type Ex2 = Param  "name" String :> GetJSON User
+
+-- >>> type Ex3 = "users" :? JSONBody User :> GetJSON User
+
+-- >>> type Ex4 = "users" :? Param "author" String :> GetJSON User
+
+-- >>> type Ex5 = Param "name" String :> Get '[ ResBody JSON User, 'ResHeaders '[ "content" := String] ]
+
+-- >>> type Ex6 = "users" :? '[ Params '["some" := Int, "name" := String], ReqBody JSON User ] :> GetJSON User
+-- $setup
+--
+-- The doctests in this module are run with following preamble:
+--
+-- >>> :set -XPolyKinds
+-- >>> :set -XTypeFamily
+-- >>> import Network.Core.API.Internal
+-- >>> import Network.Core.API.MediaType
+-- >>> import Network.Core.API.TypeLevel
+-- >>> import Network.Core.API.Verbs

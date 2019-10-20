@@ -2,11 +2,13 @@
 module Network.Core.Http.HasRequest where
 
 import Data.Kind
-import Data.List (foldl')
+import Data.List (foldr)
 import Data.Proxy
 import Data.Singletons.Prelude hiding (All)
 import Data.Singletons.TypeLits
+import Data.String (fromString)
 import Data.String.Conversions (cs)
+
 import Network.Core.API
 import Network.Core.Http.Hlist
 import Network.Core.Http.Request
@@ -33,9 +35,9 @@ instance
     let reqContext' = reqContext { reqPath = symbolVal (Proxy @path) }
     httpInput subroute input reqContext'
 
-instance
+instance  {-# OVERLAPPING #-}
   ( HttpReqConstraints ts
-  , UniqMembers ts "Request Content"
+  , UniqMembers ts "Request"
   , ReflectMethod method
   , SingI ('Req ts)
   , RunHttp m
@@ -65,32 +67,48 @@ encodeHlistAsReq
   -> Request
   -> Request
 encodeHlistAsReq xs input req = case (xs, input) of
-  (SNil, _)                                 -> req
+  (SNil, _)                                                      ->
+    req
 
-  (SCons (SParams SNil) sxs, ys)            ->
+  (SCons (SReqHeaders (SCons (STuple2 s _x) hs)) sxs, (y :. ys)) ->
+    let headerName = fromString $ withKnownSymbol s (symbolVal s)
+        req' = addHeader headerName y req
+    in encodeHlistAsReq (SCons (SReqHeaders hs) sxs) ys req'
+
+  (SCons (SReqHeaders SNil) sxs, ys)                            ->
     encodeHlistAsReq sxs ys req
 
-  (SCons (SParams (SCons (STuple2 s _x) ps)) sxs, (y :. ys)) ->
+  (SCons (SCaptureAll _s _a) sxs, (y :. ys))                    ->
+    let req' = appendToPath (cs $ toUrlPiece y) req
+    in encodeHlistAsReq sxs ys req'
+
+  (SCons (SCaptures SNil) sxs, ys)                              ->
+    encodeHlistAsReq sxs ys req
+
+  (SCons (SCaptures (SCons (STuple2 _s _x) zs)) sxs, (y :. ys)) ->
+    let req' = appendToPath (cs $ toUrlPiece y) req
+    in encodeHlistAsReq (SCons (SCaptures zs) sxs) ys req'
+
+  (SCons (SParams SNil) sxs, ys)                                ->
+    encodeHlistAsReq sxs ys req
+
+  (SCons (SParams (SCons (STuple2 s _x) ps)) sxs, (y :. ys))    ->
     let req' = appendToQueryString (createParam s y) req
     in encodeHlistAsReq (SCons (SParams ps) sxs) ys req'
 
-  (SCons (SQueryFlags sflags) SNil, _)       ->
+  (SCons (SQueryFlags sflags) SNil, _)                          ->
     appendQueryFlags (toQueryFlags sflags) req
 
-  (SCons (SQueryFlags sflags) sxs, ys)       ->
+
+  (SCons (SQueryFlags sflags) sxs, ys)                          ->
      encodeHlistAsReq sxs ys
        $ appendQueryFlags (toQueryFlags sflags) req
 
-  (SCons (SReqBody sctyp _sa) sxs, (y :. ys)) ->
-     encodeHlistAsReq sxs ys $ appendBody sctyp y req
+  (SCons (SReqBody sctyp _sa) sxs, (y :. ys))                  ->
+     let req' = setReqBody (encode sctyp y) req
+     in encodeHlistAsReq sxs ys req'
 
-  _                                           ->
-    error "TODO: implement me"
-
-appendBody
-  :: (HasMediaType ctyp, MediaEncode ctyp a)
-  => Sing ctyp -> a -> Request -> Request
-appendBody sctyp x req = setReqBody (encode sctyp x) req
+-- | helpers
 
 createParam
   :: (KnownSymbol p, ToHttpApiData a) => Sing p -> a -> QueryItem
@@ -102,8 +120,7 @@ createParam sname val =
 appendQueryFlags :: [String] -> Request -> Request
 appendQueryFlags xs req =
   let queryflags = (\ x -> (cs x, Nothing)) <$> xs
-  in foldl' (flip appendToQueryString) req queryflags
-  -- ^ TODO:  use a foldl or foldr
+  in foldr appendToQueryString req queryflags
 
 toQueryFlags
   :: forall (fs :: [Symbol]) . All KnownSymbol fs

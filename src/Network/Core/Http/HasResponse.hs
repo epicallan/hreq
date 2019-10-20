@@ -3,6 +3,8 @@ module Network.Core.Http.HasResponse where
 
 import Data.Kind
 import Data.Singletons.Prelude
+import GHC.TypeLits
+
 import Network.Core.API
 import Network.Core.Http.Hlist
 import Network.Core.Http.HttpError
@@ -22,7 +24,7 @@ instance HasResponse subroute m
   type  HttpOutput (path :? subroute) = HttpOutput subroute
   httpRes _ response = httpRes (Proxy @subroute) response
 
-instance {-# OVERLAPPABLE #-}
+instance
   ( UniqMembers rs "Response content"
   , HasResponse rs m
   )
@@ -31,11 +33,35 @@ instance {-# OVERLAPPABLE #-}
 
   httpRes _ response = httpRes (Proxy @rs) response
 
-instance (RunHttp m) => HasResponse '[] m where
-  type HttpOutput '[] = Hlist '[]
+instance
+  ( UniqMembers rs "Response"
+  , HasResponse rs m
+  )
+  => HasResponse (Verb method rs ) m where
+  type HttpOutput (Verb method rs) = HttpOutput rs
 
-  httpRes _ _ = return NoResponse
-  
+  httpRes _ response = httpRes (Proxy @rs) response
+
+instance (RunHttp m) => HasResponse '[] m where
+  type HttpOutput '[] = ()
+
+  httpRes _ _ = return ()
+
+instance {-# OVERLAPPING #-} RunHttp m
+  => HasResponse '[ 'Raw ] m where
+  type HttpOutput '[ 'Raw ] = Response
+
+  httpRes _ response = return response
+
+instance {-# OVERLAPPING #-}
+  (RunHttp m
+  , TypeError ('Text "Raw response type should only be used in a singleton list")
+  )
+  => HasResponse ('Raw : r : rs) m where
+  type HttpOutput ('Raw : r : rs) =
+    TypeError ('Text "Raw should be used only in a singleton list")
+
+  httpRes _ _ =  error "GHC Error"
 
 instance {-# OVERLAPPING #-}
   ( HasMediaType ctyp
@@ -83,8 +109,6 @@ instance {-# OVERLAPPING #-}
   httpRes _ response = case sing @('Res ('ResHeaders hs ': rs)) of
     SRes xs -> decodeAsHlist xs response
 
--- TODO: HasResponse (Verb method '[ Raw ])
-
 decodeAsBody -- | TODO: see  decodeAs used in Servant
   :: (RunHttp m, MediaDecode ctyp a, HasMediaType ctyp )
   => sing ctyp
@@ -119,3 +143,8 @@ decodeAsHlist srs response = case srs of
     let status = resStatus response
     rest <- decodeAsHlist xs response
     return $ status :. rest
+
+  (SCons SRaw _xs)-> error "GHC Error"
+  -- ^ Should never match because we have a class instance
+  -- that triggers a type error when 'Raw' is in a non-singleton
+  -- type level list
