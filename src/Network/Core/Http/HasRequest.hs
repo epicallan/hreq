@@ -8,6 +8,7 @@ import Data.Singletons.Prelude hiding (All)
 import Data.Singletons.TypeLits
 import Data.String (fromString)
 import Data.String.Conversions (cs)
+import Web.HttpApiData (ToHttpApiData (..))
 
 import Network.Core.API
 import Network.Core.Http.Hlist
@@ -15,10 +16,9 @@ import Network.Core.Http.Request
 import Network.Core.Http.Response
 import Network.Core.Http.RunHttp
 import Network.HTTP.Types (QueryItem)
-import Web.HttpApiData (ToHttpApiData (..))
 
-pattern EmptyReq :: Hlist '[]
-pattern EmptyReq = Nil
+pattern Empty :: Hlist '[]
+pattern Empty = Nil
 
 class RunHttp m => HasRequest api m where
    type HttpInput (api :: k) :: Type
@@ -31,34 +31,53 @@ instance
   ) => HasRequest (path :? subroute) m where
   type HttpInput (path :? subroute) = HttpInput subroute
 
-  httpInput subroute input reqContext = do
-    let reqContext' = reqContext { reqPath = symbolVal (Proxy @path) }
-    httpInput subroute input reqContext'
+  httpInput subroute input req = do
+    let req' = req { reqPath = symbolVal (Proxy @path) }
+    httpInput subroute input req'
 
-instance  {-# OVERLAPPING #-}
+instance
   ( HttpReqConstraints ts
   , UniqMembers ts "Request"
   , ReflectMethod method
   , SingI ('Req ts)
+  , SingI ('Res rs)
+  , HttpResConstraints rs
   , RunHttp m
   )
-  => HasRequest (ts :> Verb method rs) m where
+  => HasRequest (ts :> Verb method rs ) m where
 
   type HttpInput (ts :> Verb method rs) = Hlist (HttpReq ts)
 
-  httpInput _ input req = case sing @ ('Req ts ) of
+  httpInput _ input req = case sing @('Req ts ) of
     SReq xs -> do
       let req' = encodeHlistAsReq xs input req
       httpInput (Proxy @(Verb method rs)) Nil req'
 
-instance (RunHttp m, ReflectMethod  method)
-  => HasRequest (Verb method rs) m where
+instance
+  ( RunHttp m
+  , ReflectMethod method
+  , SingI ('Res rs)
+  , HttpResConstraints rs
+  )
+  => HasRequest (Verb method rs ) m where
 
   type HttpInput (Verb method rs) = Hlist '[]
 
   httpInput _ _ req = do
     let method' = reflectMethod (Proxy @(method))
-    runRequest (appendMethod method' req)
+        acceptHeader = case sing @('Res rs) of
+                         SRes sx -> getAcceptHeader sx
+        req' = appendMethod method' $ req { reqAccept = acceptHeader }
+    runRequest req'
+
+getAcceptHeader
+  :: forall (rs :: [ ResContent Type]) . HttpResConstraints rs
+  => Sing rs -> Maybe MediaType
+getAcceptHeader = \case
+  SNil -> Nothing
+  SCons (SResBody sctyp _a) _rs -> Just $ mediaType sctyp
+  SCons (SRaw _) rs -> getAcceptHeader rs
+  SCons (SResHeaders _) rs -> getAcceptHeader rs
 
 encodeHlistAsReq
   :: forall (ts :: [ReqContent Type]) . HttpReqConstraints ts
@@ -105,7 +124,7 @@ encodeHlistAsReq xs input req = case (xs, input) of
        $ appendQueryFlags (toQueryFlags sflags) req
 
   (SCons (SReqBody sctyp _sa) sxs, (y :. ys))                  ->
-     let req' = setReqBody (encode sctyp y) req
+     let req' = setReqBody (encode sctyp y) (mediaType sctyp) req
      in encodeHlistAsReq sxs ys req'
 
 -- | helpers

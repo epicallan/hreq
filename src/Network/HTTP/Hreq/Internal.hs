@@ -28,8 +28,10 @@ instance RunHttp (Hreq IO) where
 
   throwHttpError = throwError
 
+-- TODO: MonadBaseControl instances
+
 toResponse :: HTTP.Response LBS.ByteString -> Response
-toResponse = undefined
+toResponse = error "TODO: implement me"
 
 runHreq :: MonadIO m => BaseUrl -> Hreq m a -> m a
 runHreq baseUrl hrequest = do
@@ -47,22 +49,11 @@ requestToHTTPRequest burl r = HTTP.defaultRequest
     , HTTP.port = baseUrlPort burl
     , HTTP.path = cs $ baseUrlPath burl <> reqPath r
     , HTTP.queryString = renderQuery True $ reqQueryString r
-    -- , HTTP.requestHeaders =
-    --   maybeToList acceptHdr ++ maybeToList contentTypeHdr ++ headers
-    , HTTP.requestBody = maybe mempty HTTP.RequestBodyBS $ reqBody r
+    -- TODO: add headers
+    , HTTP.requestBody = maybe mempty HTTP.RequestBodyBS $ fst <$> reqBody r
     , HTTP.secure = isSecure
     }
   where
-    -- Content-Type and Accept are specified by requestBody and requestAccept
-    -- headers = filter (\(h, _) -> h /= "Accept" && h /= "Content-Type") $
-    --     toList $ requestHeaders r
-
-    -- acceptHdr
-    --     | null hs   = Nothing
-    --     | otherwise = Just ("Accept", renderHeader hs)
-    --   where
-    --     hs = toList $ requestAccept r
-
     isSecure = case baseUrlScheme burl of
         Http  -> False
         Https -> True

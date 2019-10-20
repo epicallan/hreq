@@ -1,6 +1,7 @@
-{-# LANGUAGE AllowAmbiguousTypes #-}
-{-# LANGUAGE InstanceSigs        #-}
-module Network.Core.API.MediaType where
+module Network.Core.API.MediaType
+  ( module Network.Core.API.MediaType
+  , MediaType
+  )where
 
 import Control.Exception.Safe
 import Data.Aeson as A
@@ -20,13 +21,13 @@ newtype DecodeError = DecodeError { unDecodeError :: Text }
 instance Exception DecodeError
 
 class HasMediaType ctyp where
-  mediaType :: MediaType
+  mediaType :: sing ctyp -> MediaType
 
 instance HasMediaType JSON where
-  mediaType = "application" // "json"
+  mediaType _ = "application" // "json"
 
 instance HasMediaType PlainText where
-  mediaType = "text" // "plain"
+  mediaType _ = "text" // "plain"
 
 class HasMediaType ctyp => MediaDecode ctyp a where
   decode :: sing ctyp -> B.ByteString -> Either DecodeError a

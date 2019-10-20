@@ -3,6 +3,7 @@ module Network.Core.Http.Request where
 import Data.ByteString as B
 import Data.Monoid ((<>))
 import GHC.Generics
+import Network.HTTP.Media (MediaType)
 import Network.HTTP.Types (Header, HeaderName, HttpVersion (..), Method, QueryItem, http11,
                            methodGet)
 import Web.HttpApiData (ToHttpApiData (..))
@@ -10,9 +11,10 @@ import Web.HttpApiData (ToHttpApiData (..))
 data Request = Request
   { reqPath        :: String -- | TODO: Maybe use builder or Text
   , reqMethod      :: Method
-  , reqBody        :: Maybe B.ByteString
+  , reqBody        :: Maybe (B.ByteString, MediaType)
   , reqQueryString :: [QueryItem]
   , reqHttpVersion :: HttpVersion
+  , reqAccept      :: Maybe MediaType
   , reqHeaders     :: [Header]
   } deriving (Eq, Show, Generic)
 
@@ -23,6 +25,7 @@ defaultRequest = Request
   , reqBody = Nothing
   , reqQueryString = []
   , reqHttpVersion = http11
+  , reqAccept = Nothing
   , reqHeaders = []
   }
 
@@ -44,5 +47,6 @@ addHeader :: ToHttpApiData a => HeaderName -> a -> Request -> Request
 addHeader name val req =
   req {reqHeaders = (name, toHeader val) : reqHeaders req}
 
-setReqBody :: ByteString -> Request -> Request
-setReqBody b req = req { reqBody = Just b }
+setReqBody :: ByteString -> MediaType -> Request -> Request
+setReqBody body mediaType req =
+  req { reqBody = Just (body, mediaType) }

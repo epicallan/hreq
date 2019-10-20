@@ -10,6 +10,8 @@ module Network.Core.API
 
 import GHC.TypeLits
 
+import Data.Kind
+import Data.Singletons.TypeRepTYPE ()
 import Network.Core.API.Internal
 import Network.Core.API.MediaType
 import Network.Core.API.TypeLevel
@@ -42,9 +44,9 @@ type PatchJSON a = Patch '[ ResBody JSON a]
 
 type DeleteJson a = Delete '[ResBody JSON a]
 
-type RawResponse v = Verb v '[ Raw ]
+type RawResponse v = Verb v '[ Raw () ]
 
-type EmptyResponse v = Verb v '[]
+type EmptyResponse v = Verb v ('[ ] :: [ ResContent Type ])
 
 -- | Doc-tests
 --

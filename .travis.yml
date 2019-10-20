@@ -1,34 +1,34 @@
-language: c
+sudo: true
+language: haskell
 
-sudo: false
+git:
+  depth: 2
+
+cabal: "2.0"
 
 cache:
   directories:
-    - ~/.cabal/packages
-    - ~/.cabal/store
+  - "$HOME/.cabal/store"
 
 matrix:
   include:
-    - env: CABALVER=2.4 GHCVER=8.2.2
-      addons: {apt: {packages: [cabal-install-2.4,ghc-8.2.2], sources: [hvr-ghc]}}
-    - env: CABALVER=2.4 GHCVER=8.4.4
-      addons: {apt: {packages: [cabal-install-2.4,ghc-8.4.4], sources: [hvr-ghc]}}
-    - env: CABALVER=2.4 GHCVER=8.6.5
-      addons: {apt: {packages: [cabal-install-2.4,ghc-8.6.5], sources: [hvr-ghc]}}
+  - ghc: 8.2.2
+  - ghc: 8.4.4
+  - ghc: 8.6.5
 
-before_install:
-  - export PATH=/opt/ghc/$GHCVER/bin:/opt/cabal/$CABALVER/bin:$PATH
 
 install:
-  - cabal --version
-  - ghc --version
-  - travis_retry cabal new-update
+  - |
+    ghc --version
+    cabal --version
+    cabal new-update
+    cabal new-configure
+    cabal new-build --enable-tests
 
 script:
-  - cabal new-build --enable-tests --enable-benchmarks --flags=dev
-  - cabal new-test --enable-tests --enable-benchmarks --flags=dev
-  - cabal new-haddock
-  - cabal sdist
+  # - cabal new-test
+  # HLint check
+  - curl -sSL https://raw.github.com/ndmitchell/neil/master/misc/travis.sh | sh -s -- hlint .
 
 notifications:
   email: false

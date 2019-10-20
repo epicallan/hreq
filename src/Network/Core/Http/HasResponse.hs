@@ -9,6 +9,7 @@ import Network.Core.API
 import Network.Core.Http.Hlist
 import Network.Core.Http.HttpError
 import Network.Core.Http.Response
+-- import Network.Core.Http.Request
 import Network.Core.Http.RunHttp
 
 pattern NoResponse :: Hlist '[]
@@ -48,8 +49,8 @@ instance (RunHttp m) => HasResponse '[] m where
   httpRes _ _ = return ()
 
 instance {-# OVERLAPPING #-} RunHttp m
-  => HasResponse '[ 'Raw ] m where
-  type HttpOutput '[ 'Raw ] = Response
+  => HasResponse '[ 'Raw a ] m where
+  type HttpOutput '[ 'Raw a ] = Response
 
   httpRes _ response = return response
 
@@ -89,15 +90,6 @@ instance {-# OVERLAPPING #-}
       reset <- decodeAsHlist xs response
       return $ body :. reset
 
-instance {-# OVERLAPPING #-}
-  ( RunHttp m
-  , HttpResConstraints ('ResStatus ': rs)
-  , SingI ('Res ('ResStatus ': rs))
-  ) => HasResponse ('ResStatus ': (rs :: [ResContent Type])) m where
-  type HttpOutput ('ResStatus ': rs) = Hlist (HttpRes ('ResStatus ': rs))
-
-  httpRes _ response = case sing @('Res ('ResStatus ': rs))  of
-    SRes xs -> decodeAsHlist xs response
 
 instance {-# OVERLAPPING #-}
   ( RunHttp m
@@ -139,12 +131,7 @@ decodeAsHlist srs response = case srs of
   SCons (SResHeaders SNil) xs ->
     decodeAsHlist xs response
 
-  SCons SResStatus xs -> do
-    let status = resStatus response
-    rest <- decodeAsHlist xs response
-    return $ status :. rest
-
-  (SCons SRaw _xs)-> error "GHC Error"
+  (SCons (SRaw _) _xs)-> error "GHC Error"
   -- ^ Should never match because we have a class instance
   -- that triggers a type error when 'Raw' is in a non-singleton
   -- type level list

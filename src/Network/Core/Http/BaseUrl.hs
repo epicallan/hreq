@@ -15,4 +15,4 @@ data BaseUrl = BaseUrl
   } deriving (Show, Eq, Ord)
 
 showBaseUrl :: BaseUrl -> String
-showBaseUrl = undefined
+showBaseUrl = error "TODO: implement me"

@@ -6,19 +6,16 @@ import GHC.TypeLits
 data ResContent a =
     ResBody a a
   | ResHeaders [(Symbol, a)]
-  | ResStatus
-  | Raw
+  | Raw a -- ^ The a parameter is not used its just here to appease type GODs
 
 type ResBody = 'ResBody
 type ResHeaders = 'ResHeaders
-type ResStatus = 'ResStatus
 type Raw = 'Raw
 
 data instance Sing (a :: ResContent k) where
   SResBody :: Sing ctyp -> Sing a -> Sing ('ResBody ctyp a)
   SResHeaders :: Sing ts -> Sing ('ResHeaders ts)
-  SResStatus :: Sing 'ResStatus
-  SRaw :: Sing 'Raw
+  SRaw :: Sing a -> Sing ('Raw a)
 
 instance (SingI ctyp, SingI a) => SingI ('ResBody ctyp a) where
   sing = SResBody sing sing
@@ -26,8 +23,5 @@ instance (SingI ctyp, SingI a) => SingI ('ResBody ctyp a) where
 instance SingI ts => SingI ('ResHeaders ts) where
   sing = SResHeaders sing
 
-instance SingI 'Raw where
-  sing = SRaw
-
-instance SingI 'ResStatus where
-  sing = SResStatus
+instance SingI a => SingI ('Raw a) where
+  sing = SRaw sing

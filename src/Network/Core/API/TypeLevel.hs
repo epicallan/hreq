@@ -4,7 +4,7 @@ import Data.Kind
 import GHC.TypeLits
 import Network.Core.API.Internal
 import Network.Core.API.MediaType
-import Network.HTTP.Types (Header, Status)
+import Network.HTTP.Types (Header)
 import Web.HttpApiData (ToHttpApiData)
 
 type family HttpReq (ts :: [ReqContent Type]) :: [  Type ] where
@@ -25,20 +25,21 @@ type family HttpReq (ts :: [ReqContent Type]) :: [  Type ] where
   HttpReq ('ReqHeaders ( '(s, a) ': hs ) ': ts) = a ': HttpReq ('ReqHeaders hs ': ts)
   HttpReq ('ReqHeaders '[] : ts) = HttpReq ts
 
+
 type family HttpRes (res :: [ ResContent Type ]) :: [ Type ] where
   HttpRes '[] = '[]
   HttpRes ('ResBody ctyp a ': ts) = a ': HttpRes ts
   HttpRes ('ResHeaders (s ': hs) ': ts) = [Header] ': HttpRes ts
   HttpRes ('ResHeaders '[]  ': ts) = HttpRes ts
-  HttpRes ('ResStatus ': ts) = Status ': HttpRes ts
+  HttpRes ('Raw a ': ts) = HttpRes ts
 
 
 type family HttpResConstraints (res :: [ResContent Type]) :: Constraint where
   HttpResConstraints '[] = ()
   HttpResConstraints  ('ResBody ctyp a ': ts) =
      (HasMediaType ctyp, MediaDecode ctyp a, HttpResConstraints ts)
-  HttpResConstraints  ('ResHeaders hs ': ts) = (HttpSymbolTypePair hs, HttpResConstraints ts)
-  HttpResConstraints ('ResStatus ': ts) = HttpResConstraints ts
+  HttpResConstraints ('ResHeaders hs ': ts) = (HttpSymbolTypePair hs, HttpResConstraints ts)
+  HttpResConstraints ('Raw a ': ts) = HttpResConstraints ts
 
 type family HttpReqConstraints (req :: [ReqContent Type]) :: Constraint where
   HttpReqConstraints '[] = ()
