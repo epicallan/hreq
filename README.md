@@ -16,9 +16,9 @@ TODO: Write a detailed comparison between servant-client and Hreq (elaborate on 
 
 Summary key points
 -----------------
- - A default HTTP client manager is set up within the library such that one doesn't have to think about manager configuration. This is in stark contrast with Servant-Client where you have to provide one. It's also possible to over-ride provided the inbuilt manager
+ - A default HTTP client manager is set up within the library such that one doesn't have to think about manager configuration. This is in stark contrast with Servant-Client where you have to provide one. It's also possible to over-ride the provided default manager
 
- - Hreq provides type synonyms for standard API type combinators, to reduce on API type verbosity.
+ - Hreq provides type synonyms for common API type combinators therefore reducing on API types verbosity.
 
  - Due to the Kind, restrictive nature of the API type specification; a wide range of invalid type errors are eliminated, making incorrect states un-representable at the type level.
 
