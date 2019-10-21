@@ -64,3 +64,7 @@ getUserByName :: RunHttp m => String -> m User
 getUserByName name = hreq @(Capture "name" String :> GetJSON User) (name  :. Empty)
 
 ```
+
+## Attribution
+
+Hreq makes use of some code from the Servant client libraries where it makes sense to do so.  am thankful to Servant-client maintainers.

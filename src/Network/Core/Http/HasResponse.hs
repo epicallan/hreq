@@ -1,4 +1,5 @@
-{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE PatternSynonyms  #-}
+{-# LANGUAGE TypeApplications #-}
 module Network.Core.Http.HasResponse where
 
 import Data.Kind
@@ -9,7 +10,6 @@ import Network.Core.API
 import Network.Core.Http.Hlist
 import Network.Core.Http.HttpError
 import Network.Core.Http.Response
--- import Network.Core.Http.Request
 import Network.Core.Http.RunHttp
 
 pattern NoResponse :: Hlist '[]
@@ -23,7 +23,7 @@ class RunHttp m => HasResponse api m where
 instance HasResponse subroute m
   => HasResponse (path :? subroute) m where
   type  HttpOutput (path :? subroute) = HttpOutput subroute
-  httpRes _ response = httpRes (Proxy @subroute) response
+  httpRes _ = httpRes (Proxy @subroute)
 
 instance
   ( UniqMembers rs "Response content"
@@ -32,7 +32,7 @@ instance
   => HasResponse (ts :> Verb method rs ) m where
   type HttpOutput (ts :> Verb method rs) = HttpOutput rs
 
-  httpRes _ response = httpRes (Proxy @rs) response
+  httpRes _ = httpRes (Proxy @rs)
 
 instance
   ( UniqMembers rs "Response"
@@ -41,7 +41,7 @@ instance
   => HasResponse (Verb method rs ) m where
   type HttpOutput (Verb method rs) = HttpOutput rs
 
-  httpRes _ response = httpRes (Proxy @rs) response
+  httpRes _ = httpRes (Proxy @rs)
 
 instance (RunHttp m) => HasResponse '[] m where
   type HttpOutput '[] = ()
@@ -52,7 +52,7 @@ instance {-# OVERLAPPING #-} RunHttp m
   => HasResponse '[ 'Raw a ] m where
   type HttpOutput '[ 'Raw a ] = Response
 
-  httpRes _ response = return response
+  httpRes _ = return
 
 instance {-# OVERLAPPING #-}
   (RunHttp m
@@ -72,7 +72,7 @@ instance {-# OVERLAPPING #-}
   => HasResponse '[ 'ResBody  ctyp a ] m where
   type HttpOutput '[ 'ResBody ctyp a ] = a
 
-  httpRes _ response = decodeAsBody (Proxy @ctyp) response
+  httpRes _ = decodeAsBody (Proxy @ctyp)
 
 -- | The following type instances below are overly restrictive to avoid
 -- overlapping type family instance error.

@@ -1,5 +1,7 @@
 module Network.Core.Http.BaseUrl where
 
+import Data.List (isPrefixOf)
+
 data Scheme =
     Http
   | Https
@@ -14,5 +16,19 @@ data BaseUrl = BaseUrl
   , baseUrlPath   :: String   -- ^ path (eg "/a/b/c")
   } deriving (Show, Eq, Ord)
 
+-- | >>> showBaseUrl <$> parseBaseUrl "api.example.com"
+-- "http://api.example.com"
 showBaseUrl :: BaseUrl -> String
-showBaseUrl = error "TODO: implement me"
+showBaseUrl (BaseUrl urlscheme host port path) =
+  schemeString ++ "//" ++ host ++ (portString </> path)
+    where
+      a </> b = if "/" `isPrefixOf` b || null b then a ++ b else a ++ '/':b
+
+      schemeString = case urlscheme of
+        Http  -> "http:"
+        Https -> "https:"
+
+      portString = case (urlscheme, port) of
+        (Http, 80)   -> ""
+        (Https, 443) -> ""
+        _            -> ":" ++ show port

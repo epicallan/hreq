@@ -1,5 +1,6 @@
 {-# LANGUAGE DeriveAnyClass    #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeApplications  #-}
 module Main where
 
 import Data.Aeson (FromJSON, ToJSON, Value)
@@ -14,12 +15,12 @@ data User = User
 main :: IO ()
 main = do
   res <- runHreq baseUrl $ do
-    x <- singleQueryFlag
-    y <- singleReqBody
-    return (y, x)
+    x <-  hreq @(GetJSON Value) Empty
+    y <-  hreq @(RawResponse GET) Empty
+    return (x, y)
   print res
   where
-    baseUrl = BaseUrl Http "trequest.free.beeceptor.com" 80 ""
+    baseUrl = BaseUrl Http "trequest.free.beeceptor.com" 80 "hello"
 
 user :: User
 user = User "Allan" 29

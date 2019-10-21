@@ -1,4 +1,5 @@
-{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE PatternSynonyms  #-}
+{-# LANGUAGE TypeApplications #-}
 module Network.Core.Http.HasRequest where
 
 import Data.Kind
@@ -35,6 +36,8 @@ instance
     let req' = req { reqPath = symbolVal (Proxy @path) }
     httpInput subroute input req'
 
+-- TODO: instance HasRequest (path :> Verb method rs) where
+
 instance
   ( HttpReqConstraints ts
   , UniqMembers ts "Request"
@@ -64,7 +67,7 @@ instance
   type HttpInput (Verb method rs) = Hlist '[]
 
   httpInput _ _ req = do
-    let method' = reflectMethod (Proxy @(method))
+    let method' = reflectMethod (Proxy @method)
         acceptHeader = case sing @('Res rs) of
                          SRes sx -> getAcceptHeader sx
         req' = appendMethod method' $ req { reqAccept = acceptHeader }
@@ -89,7 +92,7 @@ encodeHlistAsReq xs input req = case (xs, input) of
   (SNil, _)                                                      ->
     req
 
-  (SCons (SReqHeaders (SCons (STuple2 s _x) hs)) sxs, (y :. ys)) ->
+  (SCons (SReqHeaders (SCons (STuple2 s _x) hs)) sxs, y :. ys) ->
     let headerName = fromString $ withKnownSymbol s (symbolVal s)
         req' = addHeader headerName y req
     in encodeHlistAsReq (SCons (SReqHeaders hs) sxs) ys req'
@@ -97,21 +100,21 @@ encodeHlistAsReq xs input req = case (xs, input) of
   (SCons (SReqHeaders SNil) sxs, ys)                            ->
     encodeHlistAsReq sxs ys req
 
-  (SCons (SCaptureAll _s _a) sxs, (y :. ys))                    ->
+  (SCons (SCaptureAll _s _a) sxs, y :. ys)                    ->
     let req' = appendToPath (cs $ toUrlPiece y) req
     in encodeHlistAsReq sxs ys req'
 
   (SCons (SCaptures SNil) sxs, ys)                              ->
     encodeHlistAsReq sxs ys req
 
-  (SCons (SCaptures (SCons (STuple2 _s _x) zs)) sxs, (y :. ys)) ->
+  (SCons (SCaptures (SCons (STuple2 _s _x) zs)) sxs, y :. ys) ->
     let req' = appendToPath (cs $ toUrlPiece y) req
     in encodeHlistAsReq (SCons (SCaptures zs) sxs) ys req'
 
   (SCons (SParams SNil) sxs, ys)                                ->
     encodeHlistAsReq sxs ys req
 
-  (SCons (SParams (SCons (STuple2 s _x) ps)) sxs, (y :. ys))    ->
+  (SCons (SParams (SCons (STuple2 s _x) ps)) sxs, y :. ys)    ->
     let req' = appendToQueryString (createParam s y) req
     in encodeHlistAsReq (SCons (SParams ps) sxs) ys req'
 
@@ -123,7 +126,7 @@ encodeHlistAsReq xs input req = case (xs, input) of
      encodeHlistAsReq sxs ys
        $ appendQueryFlags (toQueryFlags sflags) req
 
-  (SCons (SReqBody sctyp _sa) sxs, (y :. ys))                  ->
+  (SCons (SReqBody sctyp _sa) sxs, y :. ys)                  ->
      let req' = setReqBody (encode sctyp y) (mediaType sctyp) req
      in encodeHlistAsReq sxs ys req'
 
