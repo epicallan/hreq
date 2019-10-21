@@ -30,6 +30,7 @@ instance
   , RunHttp m
   , HasRequest subroute m
   ) => HasRequest ((path :: Symbol) :> subroute) m where
+  
   type HttpInput (path :> subroute) = HttpInput subroute
 
   httpInput _ input req = do
@@ -88,7 +89,7 @@ encodeHlistAsReq
   -> Request
   -> Request
 encodeHlistAsReq xs input req = case (xs, input) of
-  (SNil, _)                                                      ->
+  (SNil, _)                                                    ->
     req
 
   (SCons (SReqHeaders (SCons (STuple2 s _x) hs)) sxs, y :. ys) ->
@@ -96,40 +97,42 @@ encodeHlistAsReq xs input req = case (xs, input) of
         req' = addHeader headerName y req
     in encodeHlistAsReq (SCons (SReqHeaders hs) sxs) ys req'
 
-  (SCons (SReqHeaders SNil) sxs, ys)                            ->
+  (SCons (SReqHeaders SNil) sxs, ys)                           ->
     encodeHlistAsReq sxs ys req
 
-  (SCons (SCaptureAll _s _a) sxs, y :. ys)                    ->
+  (SCons (SCaptureAll _s _a) sxs, y :. ys)                     ->
     let req' = appendToPath (cs $ toUrlPiece y) req
     in encodeHlistAsReq sxs ys req'
 
-  (SCons (SCaptures SNil) sxs, ys)                              ->
+  (SCons (SCaptures SNil) sxs, ys)                             ->
     encodeHlistAsReq sxs ys req
 
-  (SCons (SCaptures (SCons (STuple2 _s _x) zs)) sxs, y :. ys) ->
+  (SCons (SCaptures (SCons (STuple2 _s _x) zs)) sxs, y :. ys)  ->
     let req' = appendToPath (cs $ toUrlPiece y) req
     in encodeHlistAsReq (SCons (SCaptures zs) sxs) ys req'
 
-  (SCons (SParams SNil) sxs, ys)                                ->
+  (SCons (SParams SNil) sxs, ys)                               ->
     encodeHlistAsReq sxs ys req
 
-  (SCons (SParams (SCons (STuple2 s _x) ps)) sxs, y :. ys)    ->
+  (SCons (SParams (SCons (STuple2 s _x) ps)) sxs, y :. ys)     ->
     let req' = appendToQueryString (createParam s y) req
     in encodeHlistAsReq (SCons (SParams ps) sxs) ys req'
 
-  (SCons (SQueryFlags _a sflags) SNil, _)                          ->
+  (SCons (SQueryFlags _a sflags) SNil, _)                      ->
     appendQueryFlags (toQueryFlags sflags) req
 
-
-  (SCons (SQueryFlags _a sflags) sxs, ys)                          ->
+  (SCons (SQueryFlags _a sflags) sxs, ys)                      ->
      encodeHlistAsReq sxs ys
        $ appendQueryFlags (toQueryFlags sflags) req
 
-  (SCons (SReqBody sctyp _sa) sxs, y :. ys)                  ->
+  (SCons (SReqBody sctyp _sa) sxs, y :. ys)                    ->
      let req' = setReqBody (encode sctyp y) (mediaType sctyp) req
      in encodeHlistAsReq sxs ys req'
 
--- | helpers
+
+{-------------------------------------------------------------------------------
+  Helper functions
+-------------------------------------------------------------------------------}
 
 createParam
   :: (KnownSymbol p, ToHttpApiData a) => Sing p -> a -> QueryItem
