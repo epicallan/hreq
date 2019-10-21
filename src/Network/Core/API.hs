@@ -54,15 +54,15 @@ type EmptyResponse v = Verb v ('[ ] :: [ ResContent Type ])
 
 -- >>> type Ex1 = JSONBody User :> GetJSON User
 
--- >>> type Ex2 = Param  "name" String :> GetJSON User
+-- >>> type Ex2 = Param "name" String :> GetJSON User
 
--- >>> type Ex3 = "users" :? JSONBody User :> GetJSON User
+-- >>> type Ex3 = "users" :> JSONBody User :> GetJSON User
 
--- >>> type Ex4 = "users" :? Param "author" String :> GetJSON User
+-- >>> type Ex4 = "users" :> Param "author" String :> GetJSON User
 
 -- >>> type Ex5 = Param "name" String :> Get '[ ResBody JSON User, 'ResHeaders '[ "content" := String] ]
 
--- >>> type Ex6 = "users" :? '[ Params '["some" := Int, "name" := String], ReqBody JSON User ] :> GetJSON User
+-- >>> type Ex6 = "users" :> '[ Params '["some" := Int, "name" := String], ReqBody JSON User ] :> GetJSON User
 -- $setup
 --
 -- The doctests in this module are run with following preamble:

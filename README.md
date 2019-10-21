@@ -30,6 +30,14 @@ Summary key points
 
 
 ```haskell
+{-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE DeriveGeneric     #-}
+{-# LANGUAGE TypeFamilies      #-}
+{-# LANGUAGE TypeOperators     #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 
 module Main where
 
@@ -42,8 +50,8 @@ data User = User
   , age  :: Int
   } deriving (Show, Generic, FromJSON, ToJSON)
 
-main :: IO ()
-main = do
+main' :: IO ()
+main' = do
   res <- runHreq baseUrl $ do
     createdUser <- createUser newUser
     myUser      <- getUserByName "allan"
@@ -52,7 +60,7 @@ main = do
   print res
   where
     baseUrl :: BaseUrl
-    baseUrl = BaseUrl Http "example.com" 80 "user"
+    baseUrl =  BaseUrl Http "trequest.free.beeceptor.com" 80 ""
 
     newUser :: User
     newUser = User "Allan" 29
@@ -61,10 +69,20 @@ createUser :: RunHttp m => User -> m User
 createUser user = hreq @(JSONBody User :> PostJSON User) (user :. Empty)
 
 getUserByName :: RunHttp m => String -> m User
-getUserByName name = hreq @(Capture "name" String :> GetJSON User) (name  :. Empty)
+getUserByName userName = hreq @(Capture "name" String :> GetJSON User) (userName  :. Empty)
 
 ```
 
 ## Attribution
 
-Hreq makes use of some code from the Servant client libraries where it makes sense to do so.  am thankful to Servant-client maintainers.
+Hreq makes use of some code from the Servant client libraries where it makes sense to do so.
+I am thankful to Servant-client maintainers.
+
+### Documentation
+
+This README is tested by `markdown-unlit` to make sure the code builds. To keep _that_ happy, we do need a `main` in this file, so ignore the following :)
+
+```haskell
+main :: IO ()
+main = pure ()
+```

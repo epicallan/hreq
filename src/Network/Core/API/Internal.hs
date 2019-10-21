@@ -4,12 +4,9 @@ module Network.Core.API.Internal
   , Api (..)
   , Sing (SRes, SReq)
   , (:>)
-  , (:?)
   , (:=)
   ) where
 
-
-import Data.Kind
 import Data.Singletons
 import GHC.TypeLits
 
@@ -31,19 +28,13 @@ instance (SingI content) => SingI ('Req content) where
   sing = SReq sing
 
 
--- | API Helper type combinators
-infixr 6 ::>
-
-data (a :: k1) ::> (b :: k2)
+-- | API Type combinators
 
 infixr 7 :>
 
-type (xs :: [ReqContent Type]) :> (content :: k ) = xs ::> content
+data (a :: k1) :> (b :: k2)
 
-infixr 5 :?
-
-type (a :: Symbol) :? (ts :: k) = a ::> ts
-
+-- | For representing type level tuples where first value is a Symbol
 infixr 1 :=
 
-type (a :: k1) := (b :: k2) = '( a, b)
+type (a :: Symbol) := (b :: k2) = '( a, b)

@@ -5,8 +5,8 @@ import qualified Network.HTTP.Client as C
 import qualified Network.HTTP.Client.TLS as TLS
 
 data HttpConfig = HttpConfig
-  { baseUrl :: BaseUrl
-  , manager :: C.Manager
+  { httpBaseUrl :: BaseUrl
+  , httpManager :: C.Manager
   }
 
 createDefConfig :: BaseUrl -> IO HttpConfig

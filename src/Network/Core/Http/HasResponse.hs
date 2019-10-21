@@ -21,15 +21,15 @@ class RunHttp m => HasResponse api m where
    httpRes :: sing api -> Response -> m (HttpOutput api)
 
 instance HasResponse subroute m
-  => HasResponse (path :? subroute) m where
-  type  HttpOutput (path :? subroute) = HttpOutput subroute
+  => HasResponse ((path :: Symbol) :> subroute) m where
+  type  HttpOutput (path :> subroute) = HttpOutput subroute
   httpRes _ = httpRes (Proxy @subroute)
 
 instance
   ( UniqMembers rs "Response content"
   , HasResponse rs m
   )
-  => HasResponse (ts :> Verb method rs ) m where
+  => HasResponse ((ts :: [ReqContent Type]) :> Verb method rs ) m where
   type HttpOutput (ts :> Verb method rs) = HttpOutput rs
 
   httpRes _ = httpRes (Proxy @rs)
@@ -65,8 +65,7 @@ instance {-# OVERLAPPING #-}
   httpRes _ _ =  error "GHC Error"
 
 instance {-# OVERLAPPING #-}
-  ( HasMediaType ctyp
-  , MediaDecode ctyp a
+  ( MediaDecode ctyp a
   , RunHttp m
   )
   => HasResponse '[ 'ResBody  ctyp a ] m where
@@ -77,8 +76,7 @@ instance {-# OVERLAPPING #-}
 -- | The following type instances below are overly restrictive to avoid
 -- overlapping type family instance error.
 instance {-# OVERLAPPING #-}
-  ( HasMediaType ctyp
-  , MediaDecode ctyp a
+  ( MediaDecode ctyp a
   , RunHttp m
   , SingI ('Res (r ': rs))
   , HttpResConstraints (r ': rs)
@@ -102,7 +100,7 @@ instance {-# OVERLAPPING #-}
     SRes xs -> decodeAsHlist xs response
 
 decodeAsBody -- | TODO: see  decodeAs used in Servant
-  :: (RunHttp m, MediaDecode ctyp a, HasMediaType ctyp )
+  :: (RunHttp m, MediaDecode ctyp a)
   => sing ctyp
   -> Response
   -> m a
