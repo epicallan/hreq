@@ -29,14 +29,12 @@ instance
   ( KnownSymbol path
   , RunHttp m
   , HasRequest subroute m
-  ) => HasRequest (path :? subroute) m where
-  type HttpInput (path :? subroute) = HttpInput subroute
+  ) => HasRequest ((path :: Symbol) :> subroute) m where
+  type HttpInput (path :> subroute) = HttpInput subroute
 
-  httpInput subroute input req = do
+  httpInput _ input req = do
     let req' = req { reqPath = symbolVal (Proxy @path) }
-    httpInput subroute input req'
-
--- TODO: instance HasRequest (path :> Verb method rs) where
+    httpInput (Proxy @subroute) input req'
 
 instance
   ( HttpReqConstraints ts
@@ -47,7 +45,7 @@ instance
   , HttpResConstraints rs
   , RunHttp m
   )
-  => HasRequest (ts :> Verb method rs ) m where
+  => HasRequest ((ts :: [ReqContent Type]) :> Verb method rs ) m where
 
   type HttpInput (ts :> Verb method rs) = Hlist (HttpReq ts)
 
@@ -71,7 +69,8 @@ instance
         acceptHeader = case sing @('Res rs) of
                          SRes sx -> getAcceptHeader sx
         req' = appendMethod method' $ req { reqAccept = acceptHeader }
-    runRequest req'
+
+    runRequest $! req'
 
 getAcceptHeader
   :: forall (rs :: [ ResContent Type]) . HttpResConstraints rs
@@ -118,11 +117,11 @@ encodeHlistAsReq xs input req = case (xs, input) of
     let req' = appendToQueryString (createParam s y) req
     in encodeHlistAsReq (SCons (SParams ps) sxs) ys req'
 
-  (SCons (SQueryFlags sflags) SNil, _)                          ->
+  (SCons (SQueryFlags _a sflags) SNil, _)                          ->
     appendQueryFlags (toQueryFlags sflags) req
 
 
-  (SCons (SQueryFlags sflags) sxs, ys)                          ->
+  (SCons (SQueryFlags _a sflags) sxs, ys)                          ->
      encodeHlistAsReq sxs ys
        $ appendQueryFlags (toQueryFlags sflags) req
 

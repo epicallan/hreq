@@ -1,6 +1,9 @@
-{-# LANGUAGE DeriveAnyClass    #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TypeApplications  #-}
+{-# LANGUAGE DataKinds        #-}
+{-# LANGUAGE DeriveAnyClass   #-}
+{-# LANGUAGE DeriveGeneric    #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TypeOperators    #-}
+
 module Main where
 
 import Data.Aeson (FromJSON, ToJSON, Value)
@@ -14,13 +17,15 @@ data User = User
 
 main :: IO ()
 main = do
+  print baseUrl
   res <- runHreq baseUrl $ do
     x <-  hreq @(GetJSON Value) Empty
     y <-  hreq @(RawResponse GET) Empty
-    return (x, y)
+    r <-  hreq @("hello" :> RawResponse GET) Empty
+    return (x, y, r)
   print res
   where
-    baseUrl = BaseUrl Http "trequest.free.beeceptor.com" 80 "hello"
+    baseUrl = BaseUrl Http "trequest.free.beeceptor.com" 80 ""
 
 user :: User
 user = User "Allan" 29
@@ -30,7 +35,7 @@ user = User "Allan" 29
 -------------------------------------------------------------------------------}
 
 singleQueryFlag :: RunHttp m => m Value
-singleQueryFlag = hreq @("user" :? QueryFlag "age" :> GetJSON Value) Empty
+singleQueryFlag = hreq @(QueryFlag "age" :>  GetJSON Value) Empty
 
 singleParam :: RunHttp m => m Value
 singleParam = hreq @(Param "age" Int :> GetJSON Value) $ singleton 10

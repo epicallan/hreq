@@ -18,11 +18,6 @@ source-repository head
   type: git
   location: https://github.com/epicallan/hreq.git
 
-flag dev
-  description:        Turn on development settings.
-  manual:             True
-  default:            False
-
 library
   exposed-modules:
       Network.Core.Http
@@ -46,7 +41,7 @@ library
     , Network.Core.Http.RunHttp
     , Network.HTTP.Hreq.Config
     , Network.HTTP.Hreq.Internal
-  default-extensions: LambdaCase DeriveGeneric FlexibleInstances FlexibleContexts ScopedTypeVariables TypeApplications TypeOperators MultiParamTypeClasses RecordWildCards TypeApplications TypeFamilies OverloadedStrings GADTs GeneralizedNewtypeDeriving FunctionalDependencies ConstraintKinds RankNTypes PolyKinds DataKinds KindSignatures ViewPatterns UndecidableInstances
+  default-extensions: LambdaCase DeriveGeneric FlexibleInstances FlexibleContexts ScopedTypeVariables TypeApplications TypeOperators MultiParamTypeClasses RecordWildCards TypeApplications TypeFamilies OverloadedStrings GADTs GeneralizedNewtypeDeriving FunctionalDependencies ConstraintKinds RankNTypes PolyKinds DataKinds KindSignatures ViewPatterns UndecidableInstances StrictData
   build-depends:
       aeson
     , base
@@ -62,10 +57,18 @@ library
     , singletons
     , string-conversions
     , text
-  if flag(dev)
-    ghc-options: -O0 -Wall -Werror
-  else
-    ghc-options: -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wnoncanonical-monad-instances -Wnoncanonical-monadfail-instances
+
+  ghc-options:
+    -Wall
+    -Wincomplete-uni-patterns
+    -Wincomplete-record-updates
+    -Wcompat
+    -Widentities
+    -Wredundant-constraints
+    -fhide-source-paths
+    -freverse-errors
+    -Wpartial-fields
+
   hs-source-dirs: src
   default-language: Haskell2010
 
@@ -74,9 +77,17 @@ executable hreq-example
   hs-source-dirs: example
   ghc-options: -Wall
   default-language: Haskell2010
-  default-extensions: LambdaCase DeriveGeneric FlexibleInstances FlexibleContexts ScopedTypeVariables TypeApplications TypeOperators MultiParamTypeClasses RecordWildCards TypeApplications TypeFamilies OverloadedStrings GADTs GeneralizedNewtypeDeriving FunctionalDependencies ConstraintKinds RankNTypes PolyKinds DataKinds KindSignatures ViewPatterns UndecidableInstances
   build-depends:
       base
     , hreq
-    , text
     , aeson
+
+test-suite readme
+  build-depends:
+      base
+    , hreq
+    , aeson
+  main-is:             README.lhs
+  type:                exitcode-stdio-1.0
+  ghc-options:         -pgmL markdown-unlit -Wall
+  build-tool-depends:  markdown-unlit:markdown-unlit

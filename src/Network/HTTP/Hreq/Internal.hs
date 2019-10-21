@@ -17,11 +17,11 @@ import Network.HTTP.Hreq.Config
 newtype Hreq m a = Hreq { runHreq' :: ReaderT HttpConfig m a }
   deriving (Functor, Applicative, Monad, MonadIO, MonadReader HttpConfig, MonadThrow)
 
-instance MonadThrow (Hreq IO) => RunHttp (Hreq IO) where
+instance RunHttp (Hreq IO) where
   runRequest req = do
     config <- ask
-    let manager' = manager config
-    let req' = requestToHTTPRequest (baseUrl config) req
+    let manager' = httpManager config
+    let req' = requestToHTTPRequest (httpBaseUrl config) req
 
     httpResponse <- liftIO $ HTTP.httpLbs req' manager'
     return $ httpResponsetoResponse httpResponse

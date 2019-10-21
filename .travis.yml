@@ -23,7 +23,7 @@ install:
     cabal new-build --enable-tests
 
 script:
-  # - cabal new-test
+  - cabal new-test
   # HLint check
   - curl -sSL https://raw.github.com/ndmitchell/neil/master/misc/travis.sh | sh -s -- hlint .
 

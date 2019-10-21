@@ -12,7 +12,7 @@ type family HttpReq (ts :: [ReqContent Type]) :: [  Type ] where
 
   HttpReq ('ReqBody ctyp a ': ts) = a ': HttpReq ts
 
-  HttpReq ('QueryFlags fs ': ts) = HttpReq ts
+  HttpReq ('QueryFlags _a fs ': ts) = HttpReq ts
 
   HttpReq ('Params ( '(s, a) ': ps ) ': ts) = a ': HttpReq ('Params ps ': ts)
   HttpReq ('Params '[] : ts) = HttpReq ts
@@ -47,7 +47,7 @@ type family HttpReqConstraints (req :: [ReqContent Type]) :: Constraint where
   HttpReqConstraints ('ReqBody ctyp a ': ts ) =
     (HasMediaType ctyp, MediaEncode ctyp a, HttpReqConstraints ts)
 
-  HttpReqConstraints ('QueryFlags fs ': ts) = (All KnownSymbol fs, HttpReqConstraints ts)
+  HttpReqConstraints ('QueryFlags _a fs ': ts) = (All KnownSymbol fs, HttpReqConstraints ts)
 
   HttpReqConstraints ('Params ( '(s, a) ': ps) ': ts) =
     (KnownSymbol s, ToHttpApiData a,  HttpReqConstraints ('Params ps ': ts))
