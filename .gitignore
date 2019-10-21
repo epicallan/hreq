@@ -27,6 +27,3 @@ dist-*/
 dist/
 stack.yaml
 stack.yaml.lock
-
-## TODO remove this file after adding tests
-Example.hs

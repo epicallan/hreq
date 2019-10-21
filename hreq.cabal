@@ -28,7 +28,6 @@ library
       Network.Core.Http
     , Network.Core.API
     , Network.HTTP.Hreq
-    , Example
   other-modules:
       Network.Core.API.Internal
     , Network.Core.API.MediaType
