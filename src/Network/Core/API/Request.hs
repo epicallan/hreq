@@ -10,6 +10,7 @@ data ReqContent a =
     | CaptureAll Symbol a
     | ReqBody a a
     | ReqHeaders [(Symbol, a)]
+    -- TODO: Add HTTP version
 
 type Captures = 'Captures
 type QueryFlags = 'QueryFlags

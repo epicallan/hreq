@@ -1,4 +1,5 @@
-{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE PatternSynonyms  #-}
+{-# LANGUAGE TypeApplications #-}
 module Network.Core.Http.HasResponse where
 
 import Data.Kind
@@ -9,7 +10,6 @@ import Network.Core.API
 import Network.Core.Http.Hlist
 import Network.Core.Http.HttpError
 import Network.Core.Http.Response
--- import Network.Core.Http.Request
 import Network.Core.Http.RunHttp
 
 pattern NoResponse :: Hlist '[]

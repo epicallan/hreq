@@ -9,4 +9,4 @@ data Response = Response
   , resBody        :: ByteString
   -- ^ TODO: Turn into a type parameter so as to support streaming
   , resHttpVersion :: HttpVersion
-  }
+  } deriving (Show, Eq)

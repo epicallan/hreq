@@ -12,9 +12,8 @@ cache:
 
 matrix:
   include:
-  - ghc: 8.2.2
-  - ghc: 8.4.4
   - ghc: 8.6.5
+  - ghc: 8.8.1
 
 
 install:

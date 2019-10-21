@@ -6,7 +6,8 @@ import GHC.TypeLits
 data ResContent a =
     ResBody a a
   | ResHeaders [(Symbol, a)]
-  | Raw a -- ^ The a parameter is not used its just here to appease type GODs
+  | Raw a -- | a is content type parameter, by default we should set it to JSON
+  -- ^ TODO: implement Raw JSON
 
 type ResBody = 'ResBody
 type ResHeaders = 'ResHeaders

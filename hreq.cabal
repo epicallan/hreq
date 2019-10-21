@@ -11,7 +11,7 @@ maintainer:     Lukwago Allan <epicallan.al@gmail>
 license:        MIT
 license-file:   LICENSE.md
 extra-doc-files: CHANGELOG.md, README.md
-tested-with:    GHC==8.2.2 GHC==8.4.4 GHC==8.6.5
+tested-with:    GHC==8.6.5 GHC==8.8.1
 build-type:     Simple
 
 source-repository head
@@ -28,6 +28,7 @@ library
       Network.Core.Http
     , Network.Core.API
     , Network.HTTP.Hreq
+    , Example
   other-modules:
       Network.Core.API.Internal
     , Network.Core.API.MediaType
