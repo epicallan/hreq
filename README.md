@@ -30,14 +30,11 @@ Summary key points
 
 
 ```haskell
-{-# LANGUAGE DataKinds         #-}
-{-# LANGUAGE DeriveGeneric     #-}
-{-# LANGUAGE TypeFamilies      #-}
-{-# LANGUAGE TypeOperators     #-}
 {-# LANGUAGE TypeApplications #-}
-{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE DeriveAnyClass #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DataKinds #-}
 
 module Main where
 
@@ -60,7 +57,7 @@ main' = do
   print res
   where
     baseUrl :: BaseUrl
-    baseUrl =  BaseUrl Http "trequest.free.beeceptor.com" 80 ""
+    baseUrl =  BaseUrl Http "example.com" 80 "user"
 
     newUser :: User
     newUser = User "Allan" 29
