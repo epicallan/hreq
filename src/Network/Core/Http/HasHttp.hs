@@ -38,9 +38,3 @@ hreq
   => HttpInput ts
   -> m (HttpOutput v)
 hreq = hreq' (Proxy @api)
-
-hreqWithMedia
-  :: forall api ts v m. HasHttp api ts v (Either HttpError) m
-  => HttpInput ts
-  -> m (HttpOutput v)
-hreqWithMedia = hreq' (Proxy @api)
