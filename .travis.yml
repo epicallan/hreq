@@ -4,7 +4,7 @@ language: haskell
 git:
   depth: 2
 
-cabal: "2.0"
+cabal: "3.0"
 
 cache:
   directories:
@@ -12,7 +12,10 @@ cache:
 
 matrix:
   include:
+  - ghc: 8.8.1
   - ghc: 8.6.5
+  - ghc: 8.4.4
+  - ghc: 8.2.2
 
 install:
   - |
