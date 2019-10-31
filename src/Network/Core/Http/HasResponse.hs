@@ -8,8 +8,8 @@ import Control.Monad.Except
 import GHC.TypeLits
 import Data.Proxy
 import Network.HTTP.Types (hContentType)
-import Data.ByteString.Lazy as LBS
-import Network.HTTP.Media (parseAccept, (//), matches)
+import qualified Data.ByteString.Lazy as LBS
+import qualified Data.List.NonEmpty as NE
 
 import Network.Core.API
 import Network.Core.Http.Hlist
@@ -95,22 +95,22 @@ decodeAsBody
 decodeAsBody _ response = do
   responseContentType <- checkContentType
 
-  unless (responseContentType `matches` accept)
-    . throwError $ UnsupportedContentType accept response
+  unless (any (responseContentType `matches`) accepts)
+    . throwError $ UnsupportedContentType (NE.head accepts) response
 
-  case decode ctypProxy (LBS.toStrict $ resBody response) of
+  case mediaDecode ctypProxy (LBS.toStrict $ resBody response) of
      Left err -> throwError $ DecodeFailure (unDecodeError err) response
      Right val -> pure val
   where
     ctypProxy :: Proxy ctyp
     ctypProxy = Proxy
 
-    accept :: MediaType
-    accept = mediaType ctypProxy
+    accepts :: NE.NonEmpty MediaType
+    accepts = mediaTypes ctypProxy
 
     checkContentType :: m MediaType
     checkContentType  = case lookup hContentType $ resHeaders response of
-      Nothing -> return $ "application"//"octet-stream" -- | TODO: implement streaming
+      Nothing -> return $ mediaType (Proxy @PlainText) -- fall back to plain text
       Just t  -> maybe (throwError $ InvalidContentTypeHeader response) return $ parseAccept t
 
 decodeAsHlist
@@ -134,7 +134,7 @@ decodeAsHlist srs response = case srs of
   SCons (SResHeaders SNil) xs ->
     decodeAsHlist xs response
 
-  (SCons (SRaw _) _xs)-> error "GHC Error"
-  -- ^ Should never match because we have a class instance
+  -- Should never match because we have a class instance
   -- that triggers a type error when 'Raw' is in a non-singleton
   -- type level list
+  (SCons (SRaw _) _xs)-> error "GHC Error"
