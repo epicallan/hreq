@@ -1,6 +1,6 @@
--- | 'HttpConfig' is used in the 'Network.HTTP.Hreq.Internal.Hreq' Monad for HTTP client configuration
+-- | 'HttpConfig' is used in the 'Hreq.Client.Internal.HTTP.Hreq' Monad for HTTP client configuration
 --
-module Network.HTTP.Hreq.Config
+module Hreq.Client.Internal.Config
   ( -- * HttpConfig
     HttpConfig (..)
     -- * Status Range
@@ -13,8 +13,8 @@ import Control.Concurrent.STM.TVar (TVar)
 import qualified Network.HTTP.Client as C
 import qualified Network.HTTP.Client.TLS as TLS
 
-import Network.Core.API (StatusCode)
-import Network.Core.Http
+import Hreq.Core.API (StatusCode)
+import Hreq.Core.Http
 
 -- | Valid Response status code range
 data StatusRange = StatusRange
