@@ -1,7 +1,7 @@
--- | Interprets a 'ReqContent' type level list into a 'Request'
+-- | This module provides a 'HasRequest' class that Interprets
+-- a 'ReqContent' type level list into 'Request' data
 --
 {-# LANGUAGE PatternSynonyms      #-}
-{-# LANGUAGE TypeApplications     #-}
 module Network.Core.Http.HasRequest where
 
 import Prelude ()
@@ -14,6 +14,8 @@ import Data.Singletons
 import GHC.TypeLits
 import Data.String (fromString)
 import Data.String.Conversions (cs)
+import Data.List (intersperse)
+import qualified Data.Text as T (concat)
 import Web.HttpApiData (ToHttpApiData (..))
 
 import Network.Core.API
@@ -96,8 +98,11 @@ encodeHlistAsReq xs input req = case (xs, input) of
   (SCons (SReqHeaders SNil) sxs, ys)                           ->
     encodeHlistAsReq sxs ys req
 
-  (SCons (SCaptureAll _a) sxs, y :. ys)                        ->
-    let req' = appendToPath (cs $ toUrlPiece y) req
+  (SCons (SCaptureAll _a) sxs, captureList :. ys)              ->
+    let captureFragments =
+           T.concat $ intersperse "/" $ toUrlPiece <$> captureList
+
+        req' = appendToPath captureFragments req
     in encodeHlistAsReq sxs ys req'
 
   (SCons (SCaptures SNil) sxs, ys)                             ->

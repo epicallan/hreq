@@ -1,6 +1,12 @@
+-- | This module provides the 'Hreq' Monad which is an instance of
+-- 'RunHttp' class and hence making it an HTTP client.
+--
 {-# LANGUAGE TupleSections #-}
 module Network.HTTP.Hreq.Internal
-  ( Hreq (..)
+  ( -- * Hreq monad
+    Hreq (..)
+  , RunHttp (..)
+    -- * Running Hreq
   , runHreq
   , runHreqWithConfig
   ) where
@@ -14,6 +20,7 @@ import Control.Monad.IO.Unlift (MonadUnliftIO (..), wrappedWithRunInIO)
 import Control.Monad.Reader (MonadIO (..), MonadReader, MonadTrans, ReaderT (..), ask, asks)
 import Control.Monad.STM (STM, atomically)
 import qualified Data.ByteString.Lazy as LBS
+import Data.Foldable (toList)
 import Data.Maybe (maybeToList)
 import Data.String.Conversions (cs)
 import Data.Time.Clock (UTCTime, getCurrentTime)
@@ -64,6 +71,7 @@ runHreq baseUrl action = do
 runHreqWithConfig :: HttpConfig -> Hreq m a -> m a
 runHreqWithConfig config action = runReaderT (runHreq' action) config
 
+-- * Helper functions
 performHttpRequest
   :: HTTP.Request
   -> HTTP.Manager
@@ -117,7 +125,7 @@ requestToHTTPRequest burl r = HTTP.defaultRequest
     , HTTP.host = cs $ baseUrlHost burl
     , HTTP.port = baseUrlPort burl
     , HTTP.path = cs $ baseUrlPath burl <> reqPath r
-    , HTTP.queryString = renderQuery True $ reqQueryString r
+    , HTTP.queryString = renderQuery True $ toList $ reqQueryString r
     , HTTP.requestHeaders = maybeToList acceptHeader <> maybeToList contentType <> headers
     , HTTP.requestBody = body
     , HTTP.secure = isSecure
@@ -125,7 +133,7 @@ requestToHTTPRequest burl r = HTTP.defaultRequest
   where
     headers :: [ Header ]
     headers = filter ( \(hname, _) -> hname /= hAccept && hname /= hContentType)
-            $ reqHeaders r
+            $ toList $ reqHeaders r
 
     acceptHeader :: Maybe Header
     acceptHeader = (hAccept, ) . renderHeader <$> reqAccept r

@@ -1,3 +1,9 @@
+-- | This module provides a 'Request' data type which contains components required for
+-- creation of an HTTP Request.
+--
+-- 'Request' data is built from type level API endpoints and the 'Network.Core.Http.BaseUrl.BaseUrl'
+-- with in the 'Network.Core.API.HasRequest.HasRequest' class instance.
+--
 {-# LANGUAGE DeriveFunctor #-}
 module Network.Core.Http.Request where
 
@@ -5,6 +11,7 @@ import Prelude ()
 import Prelude.Compat
 
 import Data.ByteString as B
+import qualified Data.Sequence as Seq
 import Data.Text
 import Data.Typeable
 import GHC.Generics
@@ -13,45 +20,48 @@ import Network.HTTP.Types (Header, HeaderName, HttpVersion (..), Method, QueryIt
                            methodGet)
 import Web.HttpApiData (ToHttpApiData (..))
 
+-- * Request
 data RequestF body = Request
   { reqPath        :: Text
   , reqMethod      :: Method
   , reqBody        :: Maybe (body, MediaType)
-  , reqQueryString :: [QueryItem]
+  , reqQueryString :: Seq.Seq QueryItem
   , reqHttpVersion :: HttpVersion
   , reqAccept      :: Maybe MediaType
-  , reqHeaders     :: [Header]
+  , reqHeaders     :: Seq.Seq Header
   } deriving (Eq, Show, Generic, Functor, Typeable)
 
-type Request= RequestF ByteString
+type Request = RequestF ByteString
 
+-- * Default Request
 defaultRequest :: Request
 defaultRequest = Request
   { reqPath = ""
   , reqMethod = methodGet
   , reqBody = Nothing
-  , reqQueryString = []
+  , reqQueryString = Seq.empty
   , reqHttpVersion = http11
   , reqAccept = Nothing
-  , reqHeaders = []
+  , reqHeaders = Seq.empty
   }
 
+-- * Request helper functions
 appendMethod :: Method -> Request -> Request
 appendMethod method req = req { reqMethod = method }
 
 appendToPath :: Text -> Request -> Request
-appendToPath p req = req { reqPath = reqPath req <> p }
+appendToPath p req = req { reqPath = reqPath req <> "/" <> p }
 
 appendToQueryString
   :: QueryItem
   -> Request
   -> Request
 appendToQueryString queryItem req =
-  req { reqQueryString = queryItem : reqQueryString req }
+  req { reqQueryString =  reqQueryString req Seq.|> queryItem }
 
 addHeader :: ToHttpApiData a => HeaderName -> a -> Request -> Request
 addHeader name val req =
-  req {reqHeaders = (name, toHeader val) : reqHeaders req}
+  req {reqHeaders = reqHeaders req Seq.|> (name, toHeader val) }
 
 setReqBody :: ByteString -> MediaType -> Request -> Request
 setReqBody body mediaType req =
