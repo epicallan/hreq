@@ -1,10 +1,10 @@
 cabal-version: >= 2.0
 name:           hreq-core
-version:        0.0.1.0
+version:        0.1.0.0
 synopsis:       Core functionality for Hreq Http client library
-description:    Core functionality for Hreq, a type dependent highlevel HTTP client library inspired by servant-client.
+description:    Core functionality for Hreq. A type dependent highlevel HTTP client library inspired by servant-client.
 category:       Network, Web
-homepage:       https://github.com/epicallan/hreq.git#readme
+homepage:       https://github.com/epicallan/hreq/blob/master/README.md
 bug-reports:    https://github.com/epicallan/hreq.git/issues
 author:         Lukwago Allan <epicallan.al@gmail>
 maintainer:     Lukwago Allan <epicallan.al@gmail>
@@ -42,7 +42,7 @@ library
     , Hreq.Core.API.Verb
     , Hreq.Core.Client.BaseUrl
     , Hreq.Core.Client.BasicAuth
-    , Hreq.Core.Client.HasClient
+    , Hreq.Core.Client.Internal
     , Hreq.Core.Client.HasRequest
     , Hreq.Core.Client.HasResponse
     , Hreq.Core.Client.ClientError
@@ -57,6 +57,7 @@ library
     base                 >= 4.10.1 && < 5,
     base-compat          >= 0.10.5 && < 0.13,
     aeson                >= 1.4.5 && < 1.5,
+    attoparsec           >= 0.13.2.2 && < 0.14,
     bytestring           >= 0.10.8 && < 0.11,
     containers           >= 0.5.7.1 && < 0.7,
     exceptions           >= 0.10.0 && < 0.11,

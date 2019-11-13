@@ -1,6 +1,6 @@
 # Hreq
 
-[![Hackage](https://img.shields.io/hackage/v/hreq.svg?logo=haskell)](https://hackage.haskell.org/package/hreq)
+[![Hackage](https://img.shields.io/hackage/v/hreq-core.svg?logo=haskell)](https://hackage.haskell.org/package/hreq)
 [![MIT license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Build status](https://img.shields.io/travis/epicallan/hreq.svg?logo=travis)](https://travis-ci.org/epicallan/hreq)
 
@@ -16,9 +16,9 @@ The Hreq github repository is a mono-repo composed of the following:
 
 - [hreq-conduit](https://github.com/epicallan/hreq/tree/master/hreq-conduit) an HTTP client with streaming support via conduit.
 
-### Checkout accompanying blog post for more details
+### Checkout accompanying blog post and minimal tutorial for more details
 
-* HTTP Requests with Hreq -- TODO: add link
+* [HTTP Requests with Hreq](https://lukwagoallan.com/posts/http-requests-with-hreq)
 
 ##  Motivation
 
