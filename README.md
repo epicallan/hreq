@@ -35,7 +35,7 @@ I envisioned Hreq as the best possible compromise of both worlds.
 
  - In Hreq, API Request component arguments are provided to the API function through a Heterogeneous list.
 
- - Hreq supports the concept of having a Retry policy, whereby an http request is retried automatically based on a set Retry policy.
+ - Hreq supports the concept of Retry policy, whereby an http request is retried automatically on failure based on a set Retry policy.
 
 ## Usage Example
 
